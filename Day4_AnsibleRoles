@@ -1,0 +1,373 @@
+Day4 - Ansible Roles:
+--------------------------
+
+ansible-galaxy tool will be used
+
+root@ubuntu:~/verizon/Day4/python# mkdir ansiblecustomrole
+root@ubuntu:~/verizon/Day4/python# cd ansiblecustomrole/
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# ansible-galaxy init nginx
+- nginx was created successfully
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# tree
+.
+└── nginx
+    ├── defaults
+    │   └── main.yml
+    ├── files
+    ├── handlers
+    │   └── main.yml
+    ├── meta
+    │   └── main.yml
+    ├── README.md
+    ├── tasks
+    │   └── main.yml
+    ├── templates
+    ├── tests
+    │   ├── inventory
+    │   └── test.yml
+    └── vars
+        └── main.yml
+
+9 directories, 8 files
+
+
+defaults - Variables doesnt change (company logo path or path that doesnt change often)
+vars - variable that change
+Files - Any static file that is copied from copy module will be saved here
+meata: Documentation purpose (author, year, platform support, version, spec info of this playbook)
+readme.me - 
+tasks - All tasks played in playbook
+template - All j2 files will get in here
+tests
+
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# cd nginx/
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# ls -lrth
+total 36K
+-rw-r--r-- 1 root root 1.3K Sep  6 04:45 README.md
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 templates
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 files
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 handlers
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 tasks
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 vars
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 meta
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 tests
+drwxr-xr-x 2 root root 4.0K Sep  6 04:45 defaults
+
+Start editing the files,
+
+defaults>main.yml
+----------------
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/defaults# cat main.yml 
+---
+# defaults file for nginx
+greeting_msg: DevOPS
+
+vars>main.yml
+-----------------
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/vars# cat main.yml 
+---
+# vars file for nginx
+provitioner_tool: Docker
+automation_tool: Ansible
+
+files>
+--------
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/vars# cd ../files/
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/files# 
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/files# cp /root/verizon/Day3/default* .
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/files# 
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/files# ls -lrth
+total 8.0K
+-rw-r--r-- 1 root root  500 Sep  6 04:57 default.conf
+-rw-r--r-- 1 root root 2.2K Sep  6 04:57 default
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/files# 
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/files# cd ../templates/
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/templates# cp /root/verizon/Day3/index.html.j2 .
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/templates# cd ../
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cd meta/
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/meta# ls -lrth
+total 4.0K
+-rw-r--r-- 1 root root 1.8K Sep  6 04:45 main.yml
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/meta# vi main.yml 
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cd te
+templates/ tests/     
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# vi tasks/main.yml 
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cat tasks/main.yml 
+---
+# tasks file for nginx
+- include: install.yml
+- include: configure.yml
+- include: deploy.yml
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# 
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# 
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cd tasks/
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/tasks# ls -lrth
+total 4.0K
+-rw-r--r-- 1 root root 97 Sep  6 05:01 main.yml
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/tasks# vim install.yml
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/tasks# cat install.yml 
+- name: Install nginx web server in Ubuntu
+     when: (ansible_distribution == "Ubuntu" and ansible_os_family == "Debian")
+     apt: 
+       name: nginx 
+       state: latest 
+       update_cache: yes
+
+   - name: Install EPEL (Extra Package for Enterprise Linux) in CentOS
+     when: (ansible_distribution == "CentOS" and ansible_os_family == "RedHat")
+     yum: name=epel-release state=latest
+
+   - name: Install nginx web server in CentOS
+     when: (ansible_distribution == "CentOS" and ansible_os_family == "RedHat")
+     yum: 
+       name: nginx 
+       state: latest 
+       #update_cache: yes
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx/tasks# 
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cat tasks/install.yml 
+- name: Install nginx web server in Ubuntu
+     when: (ansible_distribution == "Ubuntu" and ansible_os_family == "Debian")
+     apt: 
+       name: nginx 
+       state: latest 
+       update_cache: yes
+
+   - name: Install EPEL (Extra Package for Enterprise Linux) in CentOS
+     when: (ansible_distribution == "CentOS" and ansible_os_family == "RedHat")
+     yum: name=epel-release state=latest
+
+   - name: Install nginx web server in CentOS
+     when: (ansible_distribution == "CentOS" and ansible_os_family == "RedHat")
+     yum: 
+       name: nginx 
+       state: latest 
+       #update_cache: yes
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# 
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cat tasks/configure.yml 
+- name: Create the web root folder
+  file: path=/var/html state=directory mode=0777
+
+- name: Configure nginx web root folder in Ubuntu 
+  when: (ansible_distribution == "Ubuntu" and ansible_os_family == "Debian")
+  copy: src=default dest=/etc/nginx/sites-available/default
+  notify: Restart the nginx server 
+
+- name: Configure nginx web root folder in CentOS 
+  when: (ansible_distribution == "CentOS" and ansible_os_family == "RedHat")
+  copy: src=default.conf dest=/etc/nginx/conf.d/default.conf
+  notify: Restart the nginx server
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cat tasks/deploy.yml 
+- name: Deploy a web page into nginx web server
+  template: src=index.html.j2 dest=/var/html/index.html 
+
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# cat templates/index.html.j2 
+<html>
+	<title>Welcome to {{greeting_msg}}</title>
+	<body>
+		<h1>Provitioner Tool used is {{provitioner_tool}}</h1>
+		<h1>Automation Tool used is {{automation_tool}}</h1>
+	</body>
+</html>
+
+Final Tree:
+-----------
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole/nginx# tree
+.
+├── defaults
+│   └── main.yml
+├── files
+│   ├── default
+│   └── default.conf
+├── handlers
+│   └── main.yml
+├── meta
+│   └── main.yml
+├── README.md
+├── tasks
+│   ├── configure.yml
+│   ├── deploy.yml
+│   ├── install.yml
+│   └── main.yml
+├── templates
+│   └── index.html.j2
+├── tests
+│   ├── inventory
+│   └── test.yml
+└── vars
+    └── main.yml
+
+8 directories, 14 files
+
+
+Copy/create the below files to /verizon/Day4/python/ansiblecustomrole/
+
+---------------------
+dynamic_inventory.py 
+-----------------------
+root@ubuntu:~/verizon/Day4# cat python/ansible-docker-dynamic-inventory/dynamic_inventory.py
+#!/usr/bin/python
+#Author Jeganathan Swaminathan <jegan@tektutor.org> <http://www.tektutor.org>
+
+import subprocess
+import json
+from os.path import expanduser
+
+def executeDockerCommand(*args):
+    return subprocess.check_output(["docker"] + list(args)).strip()
+
+def docker_inspect(fmt, mcn):
+    return executeDockerCommand("inspect", "-f", fmt, mcn)
+
+def docker_port(machine):
+    try:
+       publishedPort = executeDockerCommand("port", machine, "22")
+       tokens = publishedPort.split(':')
+       return tokens[1]
+    except:
+       return "22"
+
+def get_host_vars(m):
+    home = expanduser("~")
+    ip = [docker_inspect("{{.NetworkSettings.IPAddress}}", m)]
+
+    publishedPort = docker_port(m)
+
+    ssh_vars = {
+        "ansible_port": publishedPort,
+        "ansible_private_key_file": home+ "/.ssh/" + "id_rsa",
+        "ansible_user": "root",
+        "ansible_become_user": "root",
+        "ansible_become_password": "root",
+    }
+
+    if ( publishedPort == "22" ):
+        ssh_vars.update({"ansible_host": docker_inspect("{{.NetworkSettings.IPAddress}}", m) })
+    else:
+        ssh_vars.update({"ansible_host": "localhost"})
+
+    hostConnectionDetails = {"hosts": ip, "vars": ssh_vars}
+    return hostConnectionDetails
+
+class DockerInventory():
+      def __init__(self):
+          self.inventory = {} # Ansible Inventory
+
+          machines = executeDockerCommand("ps", "-q").splitlines()
+          json_data = {m: get_host_vars(m) for m in machines}
+
+          print json.dumps(json_data)
+
+DockerInventory()
+
+---------------------------
+ansible.cfg
+---------------------
+root@ubuntu:~/verizon/Day4# cat python/ansible-docker-dynamic-inventory/ansible.cfg
+[defaults]
+inventory=./dynamic_inventory.py
+
+[ssh_connection]
+scp_if_ssh = True
+
+Before running ensure these files are available.,
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# ls -lrth
+total 16K
+drwxr-xr-x 10 root root 4.0K Sep  6 04:45 nginx
+-rw-r--r--  1 root root   76 Sep  6 05:15 playbookroles.yml
+-rwxr-xr-x  1 root root 1.5K Sep  6 05:19 dynamic_inventory.py
+-rw-r--r--  1 root root   80 Sep  6 05:19 ansible.cfg
+
+Run the playbookroles.yml
+----------------------------
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# ansible-playbook playbookroles.yml 
+ [ERROR]:
+
+
+PLAY [Dem for use of all custom modules] *****************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************
+ok: [172.17.0.2]
+ok: [172.17.0.3]
+
+TASK [nginx : Install nginx web server in Ubuntu] ********************************************************************************************
+skipping: [172.17.0.3]
+changed: [172.17.0.2]
+
+TASK [nginx : Install EPEL (Extra Package for Enterprise Linux) in CentOS] *******************************************************************
+skipping: [172.17.0.2]
+changed: [172.17.0.3]
+
+TASK [nginx : Install nginx web server in CentOS] ********************************************************************************************
+skipping: [172.17.0.2]
+changed: [172.17.0.3]
+
+TASK [nginx : Create the web root folder] ****************************************************************************************************
+changed: [172.17.0.2]
+changed: [172.17.0.3]
+
+TASK [nginx : Configure nginx web root folder in Ubuntu] *************************************************************************************
+skipping: [172.17.0.3]
+changed: [172.17.0.2]
+
+TASK [nginx : Configure nginx web root folder in CentOS] *************************************************************************************
+skipping: [172.17.0.2]
+changed: [172.17.0.3]
+
+TASK [nginx : Deploy a web page into nginx web server] ***************************************************************************************
+changed: [172.17.0.2]
+changed: [172.17.0.3]
+
+RUNNING HANDLER [nginx : Restart the nginx server] *******************************************************************************************
+ [WARNING]: Consider using the service module rather than running service.  If you need to use command because service is insufficient you
+can add warn=False to this command task or set command_warnings=False in ansible.cfg to get rid of this message.
+
+changed: [172.17.0.3]
+changed: [172.17.0.2]
+
+PLAY RECAP ***********************************************************************************************************************************
+172.17.0.2                 : ok=6    changed=5    unreachable=0    failed=0   
+172.17.0.3                 : ok=7    changed=6    unreachable=0    failed=0   
+
+Verify the output
+---------------------
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# docker ps
+CONTAINER ID        IMAGE                    COMMAND               CREATED             STATUS              PORTS                                        NAMES
+232e7d77b60a        verizon/ansible-centos   "/usr/sbin/sshd -D"   24 hours ago        Up 9 minutes        0.0.0.0:3000->22/tcp, 0.0.0.0:9000->80/tcp   centos0
+58f2f631a03e        verizon/ansible-ubuntu   "/usr/sbin/sshd -D"   24 hours ago        Up 9 minutes        0.0.0.0:2000->22/tcp, 0.0.0.0:8000->80/tcp   ubuntu0
+
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# curl http://localhost:9000
+<html>
+	<title>Welcome to DevOPS</title>
+	<body>
+		<h1>Provitioner Tool used is Docker</h1>
+		<h1>Automation Tool used is Ansible</h1>
+	</body>
+</html>
+root@ubuntu:~/verizon/Day4/python/ansiblecustomrole# curl http://localhost:8000
+<html>
+	<title>Welcome to DevOPS</title>
+	<body>
+		<h1>Provitioner Tool used is Docker</h1>
+		<h1>Automation Tool used is Ansible</h1>
+	</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

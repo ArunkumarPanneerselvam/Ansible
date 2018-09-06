@@ -1,0 +1,243 @@
+Day4 - Ansible Dynamic Inventory
+--------------------------------
+
+root@ubuntu:~/verizon/Day4/python# git clone https://github.com/tektutor/ansible-docker-dynamic-inventory.git
+Cloning into 'ansible-docker-dynamic-inventory'...
+remote: Counting objects: 13, done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 13 (delta 0), reused 0 (delta 0), pack-reused 10
+Unpacking objects: 100% (13/13), done.
+
+root@ubuntu:~/verizon/Day4/python# ls -lrth
+total 24K
+drwxr-xr-x 3 root root 4.0K Sep  6 02:34 ansible-docker-dynamic-inventory
+
+root@ubuntu:~/verizon/Day4/python# cd ansible-docker-dynamic-inventory/
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# ls -lrth
+total 8.0K
+-rw-r--r-- 1 root root   44 Sep  6 02:34 ping.yml
+-rwxr-xr-x 1 root root 1.5K Sep  6 02:34 dynamic_inventory.py
+
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# cat dynamic_inventory.py 
+#!/usr/bin/python
+#Author Jeganathan Swaminathan <jegan@tektutor.org> <http://www.tektutor.org>
+
+import subprocess
+import json
+from os.path import expanduser
+
+def executeDockerCommand(*args):
+    return subprocess.check_output(["docker"] + list(args)).strip()
+
+def docker_inspect(fmt, mcn):
+    return executeDockerCommand("inspect", "-f", fmt, mcn)
+
+def docker_port(machine):
+    try:
+       publishedPort = executeDockerCommand("port", machine, "22")
+       tokens = publishedPort.split(':')
+       return tokens[1]
+    except:
+       return "22"
+
+def get_host_vars(m):
+    home = expanduser("~")
+    ip = [docker_inspect("{{.NetworkSettings.IPAddress}}", m)]
+
+    publishedPort = docker_port(m)
+
+    ssh_vars = {
+        "ansible_port": publishedPort,
+        "ansible_private_key_file": home+ "/.ssh/" + "id_rsa",
+        "ansible_user": "root",
+        "ansible_become_user": "root",
+        "ansible_become_password": "root",
+    }
+
+    if ( publishedPort == "22" ):
+        ssh_vars.update({"ansible_host": docker_inspect("{{.NetworkSettings.IPAddress}}", m) })
+    else:
+        ssh_vars.update({"ansible_host": "localhost"})
+
+    hostConnectionDetails = {"hosts": ip, "vars": ssh_vars}
+    return hostConnectionDetails
+
+class DockerInventory():
+      def __init__(self):
+          self.inventory = {} # Ansible Inventory
+
+          machines = executeDockerCommand("ps", "-q").splitlines()
+          json_data = {m: get_host_vars(m) for m in machines}
+
+          print json.dumps(json_data)
+
+DockerInventory()
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# 
+
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# cat ping.yml 
+---
+
+- hosts: all
+  
+  tasks:
+     - ping:
+
+Run the playbook
+------------------------
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# ansible-playbook -i ./dynamic_inventory.py ping.yml 
+ [ERROR]:
+
+
+PLAY [all] ***********************************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************
+ [WARNING]: sftp transfer mechanism failed on [localhost]. Use ANSIBLE_DEBUG=1 to see detailed information
+
+ [WARNING]: sftp transfer mechanism failed on [localhost]. Use ANSIBLE_DEBUG=1 to see detailed information
+
+ok: [172.17.0.2]
+ok: [172.17.0.3]
+ok: [172.17.0.4]
+ [WARNING]: sftp transfer mechanism failed on [localhost]. Use ANSIBLE_DEBUG=1 to see detailed information
+
+ok: [172.17.0.6]
+ok: [172.17.0.5]
+ok: [172.17.0.7]
+
+TASK [ping] **********************************************************************************************************************************
+ [WARNING]: sftp transfer mechanism failed on [localhost]. Use ANSIBLE_DEBUG=1 to see detailed information
+
+ [WARNING]: sftp transfer mechanism failed on [localhost]. Use ANSIBLE_DEBUG=1 to see detailed information
+
+ok: [172.17.0.3]
+ok: [172.17.0.2]
+ok: [172.17.0.4]
+ok: [172.17.0.6]
+ok: [172.17.0.5]
+ [WARNING]: sftp transfer mechanism failed on [localhost]. Use ANSIBLE_DEBUG=1 to see detailed information
+
+ok: [172.17.0.7]
+
+PLAY RECAP ***********************************************************************************************************************************
+172.17.0.2                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.3                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.4                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.5                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.6                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.7                 : ok=2    changed=0    unreachable=0    failed=0   
+
+
+If we dont even want to provide the dynamic inventory.py in ansible playbook exec command add it to the ansible.cfg file
+
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# cat ansible.cfg 
+[defaults]
+inventory=./dynamic_inventory.py
+
+[ssh_connection]
+scp_if_ssh = True
+
+
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# ansible-playbook ping.yml 
+ [ERROR]:
+
+
+PLAY [all] ***********************************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************
+ok: [172.17.0.3]
+ok: [172.17.0.2]
+ok: [172.17.0.4]
+ok: [172.17.0.7]
+ok: [172.17.0.5]
+ok: [172.17.0.6]
+
+TASK [ping] **********************************************************************************************************************************
+ok: [172.17.0.2]
+ok: [172.17.0.3]
+ok: [172.17.0.4]
+ok: [172.17.0.5]
+ok: [172.17.0.7]
+ok: [172.17.0.6]
+
+PLAY RECAP ***********************************************************************************************************************************
+172.17.0.2                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.3                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.4                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.5                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.6                 : ok=2    changed=0    unreachable=0    failed=0   
+172.17.0.7                 : ok=2    changed=0    unreachable=0    failed=0   
+
+Creating Ansible Module:
+---------------------------
+
+Create a directory called library., create a hello.py file under it.
+
+── library
+│   └── hello.py
+
+
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# cat library/hello.py 
+#!/usr/bin/python
+
+from ansible.module_utils.basic import *;
+
+class Hello:
+   def sayHello(self):
+       return 'Hello Ansible Module'
+
+def main():
+   module = AnsibleModule ( argument_spec = dict () )
+   hello = Hello()
+   result = { "Result": hello.sayHello() }
+   module.exit_json ( changed=False, meta=result )
+
+main()
+
+
+Now create a yaml file called playbook.yml out of library directory
+
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# cat playbook.yml 
+- name: Dem for how to invoke custom ansible module
+  hosts: localhost
+  tasks:
+   - name: Invoke our custom hello module
+     hello:
+     register: output
+
+   - debug: var=output
+
+Now execute teh playbook.yml
+---------------------------
+
+root@ubuntu:~/verizon/Day4/python/ansible-docker-dynamic-inventory# ansible-playbook playbook.yml 
+ [ERROR]:
+
+
+PLAY [Dem for how to invoke custom ansible module] *******************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************
+ok: [localhost]
+
+TASK [Invoke our custom hello module] ********************************************************************************************************
+ok: [localhost]
+
+TASK [debug] *********************************************************************************************************************************
+ok: [localhost] => {
+    "output": {
+        "changed": false, 
+        "failed": false, 
+        "meta": {
+            "Result": "Hello Ansible Module"
+        }
+    }
+}
+
+PLAY RECAP ***********************************************************************************************************************************
+localhost                  : ok=3    changed=0    unreachable=0    failed=0   
+
+
+
+
+
+
+

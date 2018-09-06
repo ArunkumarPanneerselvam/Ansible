@@ -1,0 +1,156 @@
+Day4 - Python
+---------------
+An interpreter based language 
+	- Code will be interpreted everytime and no executable model
+	- Errors will be rep line by line on each exec
+	- Bcoz of this behav it will be slow when comapred to a compiler
+
+Python support 2 versions 2.x and 3.x
+
+2.x 
+- most popular (Structured prog ie, basic C and no object oriented)
+- Non function req
+
+
+3.x 
+- Object oriented prog and support OOPS concept
+- Function is mandatory
+
+Python Varients - Cython (C based) and Jython (Java based)
+
+root@ubuntu:~/verizon/Day4/python# python
+Python 2.7.15rc1 (default, Apr 15 2018, 21:51:34) 
+[GCC 7.3.0] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> x=10
+>>> y=20
+>>> type (x)
+<type 'int'>
+>>> type (y)
+<type 'int'>
+>>> z=x+y
+>>> print (z)
+30
+>>> x='arun'
+>>> print (z)
+30
+>>> z=x+y
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: cannot concatenate 'str' and 'int' objects
+>>> 
+>>> 
+>>> 
+>>> x='hello'
+>>> y='python'
+>>> z=x+y
+>>> print z
+hellopython
+>>> print (z)
+hellopython
+
+exit() or CTRL+D
+*******************************************************
+
+Public, Protected (-) and Private (--)
+ - These are similar to class in OOP and the -  has to be just added before the required class var in python.
+
+Simple python code
+------------------
+
+root@ubuntu:~/verizon/Day4/python# cat hello.py 
+#!/usr/bin/python
+
+print ('Hello Python!')
+
+root@ubuntu:~/verizon/Day4/python# python hello.py 
+Hello Python!
+root@ubuntu:~/verizon/Day4/python# ls -lrth
+total 4.0K
+-rw-r--r-- 1 root root 44 Sep  6 00:04 hello.py
+root@ubuntu:~/verizon/Day4/python# 
+root@ubuntu:~/verizon/Day4/python# 
+root@ubuntu:~/verizon/Day4/python# chmod 755 hello.py 
+root@ubuntu:~/verizon/Day4/python# ls -lrth
+total 4.0K
+-rwxr-xr-x 1 root root 44 Sep  6 00:04 hello.py
+
+Function example
+----------------
+root@ubuntu:~/verizon/Day4/python# cat function.py 
+#!/usr/bin/python
+
+def sayHello(); 
+    print('Hello Python')
+
+sayHello()
+
+root@ubuntu:~/verizon/Day4/python# ./function.py 
+Hello Python
+
+Main and argument function example
+------------------------
+
+root@ubuntu:~/verizon/Day4/python# cat function_arg.py
+#!/usr/bin/python
+
+def sayHello(msg): 
+ print ( str( type(msg) ) + ' ==> ' + str( msg ) )
+
+def main ():
+    sayHello('Python')
+    sayHello(10)
+
+main()
+root@ubuntu:~/verizon/Day4/python#  ./function_arg.py 
+<type 'str'> ==> Python
+<type 'int'> ==> 10
+
+
+
+CLASS Example:
+--------------------
+root@ubuntu:~/verizon/Day4/python# cat myclass.py 
+#!/usr/bin/python
+
+class Point():
+
+ #this is a python constructor and it gets invoked automatically which an object of point is created
+
+ #self represent current object(this)
+ def __init__(self):
+     print( 'Constructor got invoked ...')
+     self.x = 0
+     self.y = 0
+
+ def setvalues(self, x, y):
+     self.x = x
+     self.y = y
+
+ def printvalues(self):
+     print( 'Value of x is ', self.x)
+     print( 'Value of y is ', self.y)
+
+def main():
+    point1 = Point()
+    point1.setvalues ( 10, 20 )
+    point1.printvalues()
+
+    point2 = Point()
+    point2.setvalues ( 10, 40 )
+    point2.printvalues()
+
+main()
+root@ubuntu:~/verizon/Day4/python# 
+
+root@ubuntu:~/verizon/Day4/python#  ./myclass.py 
+Constructor got invoked ...
+('Value of x is ', 10)
+('Value of y is ', 20)
+Constructor got invoked ...
+('Value of x is ', 10)
+('Value of y is ', 40)
+root@ubuntu:~/verizon/Day4/python# 
+
+
+
